@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <title>DP-700 Exam Prep</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -156,6 +157,35 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 @media(max-width:900px){.visual-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.case-flow{grid-template-columns:1fr}.quiz-tools{align-items:stretch}.quiz-tool-group{width:100%}.quiz-tool-btn{flex:1}.quiz-score{padding:28px 16px}.quiz-nav-grid{grid-template-columns:repeat(7,1fr)}}
 ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* ── NEW IMPROVEMENTS ── */
+/* Progress status bar */
+.status-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 20px;font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:16px;min-height:28px;font-family:var(--mono)}
+.status-bar span{white-space:nowrap}.status-badge{background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.2);border-radius:4px;padding:1px 7px;color:var(--accent)}
+/* Collapse/expand all */
+.collapse-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.collapse-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--text-dim);cursor:pointer;font-family:var(--sans);transition:all .15s}
+.collapse-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* Domain completion badge */
+.domain-done{margin-left:auto;font-size:11px;color:var(--accent2);display:none;padding:0 4px}
+.domain-card.done .domain-done{display:inline}
+.domain-card.done{border-color:rgba(63,185,80,0.4);background:rgba(63,185,80,0.03)}
+/* Keyboard hint */
+.kbd-hint{font-size:11px;color:var(--text-dim);text-align:center;margin-top:6px;font-family:var(--mono)}
+kbd{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--mono)}
+/* MS Learn links */
+.learn-link{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:11px;text-decoration:none;margin-top:8px;font-weight:600}
+.learn-link:hover{text-decoration:underline}
+/* Weak area breakdown */
+.weak-area-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:10px}
+.weak-area-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.weak-area-name{font-size:12px;font-weight:600;color:var(--text-bright);margin-bottom:4px}
+.weak-area-score{font-size:11px;font-family:var(--mono);margin-bottom:4px}
+.weak-area-bar{height:4px;background:var(--border);border-radius:2px}
+.weak-area-fill{height:4px;border-radius:2px;transition:width .4s}
+/* Nav visited indicator */
+.nav-btn.visited::after{content:'·';font-size:18px;vertical-align:middle;line-height:0;margin-left:3px;color:var(--accent2)}
+/* ARIA focus ring */
+.domain-card:focus-visible,.card-btn:focus-visible,.rate-btn:focus-visible,.filter-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -174,22 +204,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   <button class="nav-btn" onclick="showSection('cheat',this)">📋 Cheat Sheet</button>
   <button class="nav-btn" onclick="showSection('quiz',this)">🎯 Quiz</button>
 </div>
+<div class="status-bar" id="statusBar">
+  <span id="statusSection" class="status-badge">Topic Map</span>
+  <span id="statusDetail"></span>
+  <span id="statusKeys" style="margin-left:auto"></span>
+</div>
 <div class="main">
 <!-- TOPIC MAP -->
 <div class="section active" id="map">
   <div class="exam-tip"><strong>⚡ Official blueprint — 100-minute assessment; three equally important domains</strong>Microsoft does not promise a fixed question count or a guaranteed case-study count. Prepare for scenario questions and possible interactive components. Click each domain to expand.</div>
+  <div class="collapse-bar">
+    <button class="collapse-btn" onclick="expandAllDomains()" aria-label="Expand all domains">▼ Expand all</button>
+    <button class="collapse-btn" onclick="collapseAllDomains()" aria-label="Collapse all domains">▲ Collapse all</button>
+    <span id="domainProgress" style="font-size:12px;color:var(--text-dim);margin-left:4px"></span>
+  </div>
   <div class="domain-grid" id="domainGrid"></div>
 </div>
 <!-- TONIGHT SURVIVAL PLAN -->
 <div class="section" id="survival">
   <div class="warning-box"><strong>Do not attempt every card tonight.</strong> Your target is tool selection, architecture reasoning, monitoring/error diagnosis, and code recognition. The quiz randomizes choices each run, so the score now measures knowledge rather than answer-position memory.</div>
   <div class="survival-grid">
-    <div class="survival-card"><span class="priority p1">FIRST · 45 MIN</span><h3>1. Architecture choices</h3><ul><li>Pipeline = batch movement + orchestration</li><li>Dataflow Gen2 = visual Power Query transformation</li><li>Notebook/Spark = large or complex transformation</li><li>Lakehouse = open files/Delta + Spark</li><li>Warehouse = full relational T-SQL</li><li>Eventstream → Eventhouse → Dashboard/Activator</li></ul></div>
-    <div class="survival-card"><span class="priority p1">NEXT · 90 MIN</span><h3>2. Ingest and transform</h3><ul><li>Full vs incremental, CDC and watermarks</li><li>Shortcut vs mirroring vs Copy</li><li>SCD1 vs SCD2; facts vs dimensions</li><li>Recognize PySpark, SQL, KQL and pipeline expressions</li><li>Duplicates, nulls and late events</li></ul></div>
-    <div class="survival-card"><span class="priority p1">DO NOT SKIP · 90 MIN</span><h3>3. Monitor and optimize</h3><ul><li>Monitoring Hub → item-native diagnostic surface</li><li>Pipeline activity output; Dataflow refresh history</li><li>Spark UI; DMVs vs Query Insights</li><li>Workspace Monitoring/Eventhouse logs</li><li>OPTIMIZE vs VACUUM; cache, partition and joins</li></ul></div>
-    <div class="survival-card"><span class="priority p2">60 MIN</span><h3>4. Security and lifecycle</h3><ul><li>Workspace role vs item permission vs data permission</li><li>RLS, CLS/OLS, DDM and OneLake security</li><li>Git = version control; deployment pipeline = promotion</li><li>Deployment rules for environment bindings</li><li>Least privilege: grant only the access path required</li></ul></div>
-    <div class="survival-card"><span class="priority p2">45–60 MIN</span><h3>5. Scenario drill</h3><ol><li>Batch or streaming?</li><li>Copy or no-copy?</li><li>SQL, Spark, Power Query or KQL?</li><li>Primary constraint: latency, cost, security or maintenance?</li><li>Which minimum set of items satisfies every requirement?</li></ol></div>
-    <div class="survival-card"><span class="priority p3">FINAL · 30 MIN</span><h3>6. Exam execution</h3><ul><li>100 minutes: answer every question; no penalty for guessing</li><li>Read section instructions—after leaving some sections you cannot return</li><li>Microsoft Learn is available on associate/expert exams, but the timer continues</li><li>Use Learn for rare syntax/limits, not for every question</li><li>Review the official practice assessment and exam sandbox</li></ul></div>
+    <div class="survival-card" id="module-arch"><span class="priority p1">FIRST · 45 MIN</span><h3>1. Architecture choices</h3><ul><li>Pipeline = batch movement + orchestration</li><li>Dataflow Gen2 = visual Power Query transformation</li><li>Notebook/Spark = large or complex transformation</li><li>Lakehouse = open files/Delta + Spark</li><li>Warehouse = full relational T-SQL</li><li>Eventstream → Eventhouse → Dashboard/Activator</li></ul><a class="learn-link" href="https://learn.microsoft.com/en-us/fabric/get-started/microsoft-fabric-overview" target="_blank" rel="noopener">📖 Official docs →</a></div>
+    <div class="survival-card" id="module-ingest"><span class="priority p1">NEXT · 90 MIN</span><h3>2. Ingest and transform</h3><ul><li>Full vs incremental, CDC and watermarks</li><li>Shortcut vs mirroring vs Copy</li><li>SCD1 vs SCD2; facts vs dimensions</li><li>Recognize PySpark, SQL, KQL and pipeline expressions</li><li>Duplicates, nulls and late events</li></ul><a class="learn-link" href="https://learn.microsoft.com/en-us/fabric/data-engineering/ingest-data" target="_blank" rel="noopener">📖 Official docs →</a></div>
+    <div class="survival-card" id="module-monitor"><span class="priority p1">DO NOT SKIP · 90 MIN</span><h3>3. Monitor and optimize</h3><ul><li>Monitoring Hub → item-native diagnostic surface</li><li>Pipeline activity output; Dataflow refresh history</li><li>Spark UI; DMVs vs Query Insights</li><li>Workspace Monitoring/Eventhouse logs</li><li>OPTIMIZE vs VACUUM; cache, partition and joins</li></ul><a class="learn-link" href="https://learn.microsoft.com/en-us/fabric/admin/monitoring-hub" target="_blank" rel="noopener">📖 Official docs →</a></div>
+    <div class="survival-card" id="module-security"><span class="priority p2">60 MIN</span><h3>4. Security and lifecycle</h3><ul><li>Workspace role vs item permission vs data permission</li><li>RLS, CLS/OLS, DDM and OneLake security</li><li>Git = version control; deployment pipeline = promotion</li><li>Deployment rules for environment bindings</li><li>Least privilege: grant only the access path required</li></ul><a class="learn-link" href="https://learn.microsoft.com/en-us/fabric/security/security-overview" target="_blank" rel="noopener">📖 Official docs →</a></div>
+    <div class="survival-card" id="module-scenario"><span class="priority p2">45–60 MIN</span><h3>5. Scenario drill</h3><ol><li>Batch or streaming?</li><li>Copy or no-copy?</li><li>SQL, Spark, Power Query or KQL?</li><li>Primary constraint: latency, cost, security or maintenance?</li><li>Which minimum set of items satisfies every requirement?</li></ol><a class="learn-link" href="https://learn.microsoft.com/en-us/credentials/certifications/exams/dp-700" target="_blank" rel="noopener">📖 Exam page →</a></div>
+    <div class="survival-card" id="module-exam"><span class="priority p3">FINAL · 30 MIN</span><h3>6. Exam execution</h3><ul><li>100 minutes: answer every question; no penalty for guessing</li><li>Read section instructions—after leaving some sections you cannot return</li><li>Microsoft Learn is available on associate/expert exams, but the timer continues</li><li>Use Learn for rare syntax/limits, not for every question</li><li>Review the official practice assessment and exam sandbox</li></ul><a class="learn-link" href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-700" target="_blank" rel="noopener">📖 Study guide →</a></div>
   </div>
   <div class="exam-tip"><strong>Use your SAP BW/HANA background</strong>Fabric pipeline ≈ process-chain/orchestration thinking; incremental/CDC ≈ delta loads; Bronze/Silver/Gold ≈ raw/staging/curated layers; Warehouse DMVs/Query Insights ≈ live and historical HANA workload diagnosis.</div>
 </div>
@@ -374,13 +414,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 <div class="section" id="flash">
   <div class="filter-bar" id="filterBar"></div>
   <div style="perspective:1000px">
-    <div class="flashcard" id="flashcard" onclick="flipCard()">
-      <div class="card-face card-front"><div class="card-tag" id="cardTag"></div><div class="card-q" id="cardQ"></div><div class="card-hint">Click to reveal answer</div></div>
-      <div class="card-face card-back"><div class="card-tag" id="cardTagB"></div><div class="card-a" id="cardA"></div><div class="rate-btns"><button class="rate-btn rate-got" onclick="rateCard(true,event)">✓ Got it</button><button class="rate-btn rate-miss" onclick="rateCard(false,event)">✗ Missed</button></div></div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()" role="button" tabindex="0" aria-label="Flashcard — click or press Space to flip" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();flipCard();}">
+      <div class="card-face card-front"><div class="card-tag" id="cardTag"></div><div class="card-q" id="cardQ"></div><div class="card-hint">Click or press <kbd>Space</kbd> to reveal answer</div></div>
+      <div class="card-face card-back"><div class="card-tag" id="cardTagB"></div><div class="card-a" id="cardA"></div><div class="rate-btns"><button class="rate-btn rate-got" onclick="rateCard(true,event)" aria-label="Mark as Got it and advance">✓ Got it</button><button class="rate-btn rate-miss" onclick="rateCard(false,event)" aria-label="Mark as Missed and advance">✗ Missed</button></div></div>
     </div>
   </div>
-  <div class="card-nav"><button class="card-btn" onclick="prevCard()">← Prev</button><span class="card-counter" id="cardCounter">1 / ?</span><button class="card-btn" onclick="nextCard()">Next →</button></div>
+  <div class="card-nav">
+    <button class="card-btn" onclick="prevCard()" aria-label="Previous card">← Prev</button>
+    <span class="card-counter" id="cardCounter">1 / ?</span>
+    <button class="card-btn" onclick="nextCard()" aria-label="Next card">Next →</button>
+  </div>
   <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--text-dim)">Missed: <span id="missCount" style="color:var(--warn)">0</span> &nbsp;|&nbsp; Got it: <span id="gotCount" style="color:var(--accent2)">0</span></div>
+  <div class="kbd-hint"><kbd>←</kbd> Prev &nbsp; <kbd>Space</kbd> Flip &nbsp; <kbd>→</kbd> Next &nbsp; <kbd>G</kbd> Got it &nbsp; <kbd>M</kbd> Missed</div>
 </div>
 <!-- CODE REFERENCE -->
 <div class="section" id="code">
@@ -558,10 +603,12 @@ GROUP BY GROUPING SETS
     <div class="score-label">Score on <span id="finalTotal"></span> questions</div>
     <div class="quiz-result-breakdown" id="quizResultBreakdown"></div>
     <div style="margin-top:14px;font-size:13px;color:var(--text-dim)" id="scoreMsg"></div>
+    <div id="weakAreaBreakdown"></div>
     <button class="restart-btn" onclick="reviewQuestions('all')">Review all answers</button>
     <button class="restart-btn" onclick="reviewQuestions('missed')">Review missed / unanswered</button>
     <button class="restart-btn" onclick="restartQuiz()">Shuffle & restart</button>
   </div>
+  <div class="kbd-hint" style="margin-top:8px"><kbd>←</kbd> Previous &nbsp; <kbd>→</kbd> Next &nbsp; <kbd>1</kbd>–<kbd>4</kbd> Answer</div>
 </div>
 </div>
 <script>
@@ -1629,12 +1676,15 @@ function showSection(id,btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
+  btn.classList.add('visited');
   if(id==='flash') initFlash();
   if(id==='quiz') initQuiz();
   if(id==='cheat') initCheat();
   if(id==='concept') initConcepts();
-
   if(id==='code')initCode();if(id==='scenario')initScenario();
+  // Update URL hash for deep linking
+  if(history.replaceState) history.replaceState(null,'','#'+id);
+  updateStatusBar(id);
 }
 
 // ══════════════ TOPIC MAP ══════════════
@@ -1642,8 +1692,10 @@ function showSection(id,btn){
   const g=document.getElementById('domainGrid');
   DOMAINS.forEach(d=>{
     const c=document.createElement('div');c.className='domain-card';
-    c.innerHTML=`<div class="domain-header"><span class="domain-icon">${renderRichText(d.icon)}</span><span class="domain-name">${renderRichText(d.name)}</span><span class="domain-weight">${renderRichText(d.weight)}</span></div><div class="domain-note">${renderRichText(d.note)}</div><div class="domain-topics">${d.topics.map(t=>`<span class="topic-pill">${renderRichText(t)}</span>`).join('')}</div>`;
-    c.onclick=()=>c.classList.toggle('expanded');
+    c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('aria-expanded','false');
+    c.innerHTML=`<div class="domain-header"><span class="domain-icon">${renderRichText(d.icon)}</span><span class="domain-name">${renderRichText(d.name)}</span><span class="domain-weight">${renderRichText(d.weight)}</span><span class="domain-done" aria-label="Reviewed">✓</span></div><div class="domain-note">${renderRichText(d.note)}</div><div class="domain-topics">${d.topics.map(t=>`<span class="topic-pill">${renderRichText(t)}</span>`).join('')}</div>`;
+    c.onclick=()=>{const exp=c.classList.toggle('expanded');c.setAttribute('aria-expanded',exp);if(!exp)c.classList.add('done');updateDomainProgress();};
+    c.onkeydown=(e)=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();c.click();}};
     g.appendChild(c);
   });
 })();
@@ -1699,12 +1751,21 @@ function updateCounters(){document.getElementById('gotCount').textContent=got;do
 function resetCounters(){got=0;missed=0;ratedIds=new Set();updateCounters();}
 function initFlash(){
   if(!flashInited){
+    // Restore saved progress before building UI
+    dp700_loadFlash();
     const tags=['All',...new Set(CURRENT_CARDS.map(c=>c.tag))];
     const bar=document.getElementById('filterBar');
-    tags.forEach(t=>{const b=document.createElement('button');b.className='filter-btn'+(t==='All'?' active':'');b.textContent=t+' ('+(t==='All'?CURRENT_CARDS.length:CURRENT_CARDS.filter(c=>c.tag===t).length)+')';b.onclick=()=>{activeCards=t==='All'?[...CURRENT_CARDS]:CURRENT_CARDS.filter(c=>c.tag===t);cardIdx=0;currentFilter=t;resetCounters();bar.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');showCard();};bar.appendChild(b);});
+    tags.forEach(t=>{
+      const isActive=t===currentFilter;
+      const b=document.createElement('button');b.className='filter-btn'+(isActive?' active':'');
+      b.textContent=t+' ('+(t==='All'?CURRENT_CARDS.length:CURRENT_CARDS.filter(c=>c.tag===t).length)+')';
+      b.onclick=()=>{activeCards=t==='All'?[...CURRENT_CARDS]:CURRENT_CARDS.filter(c=>c.tag===t);cardIdx=0;currentFilter=t;resetCounters();bar.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');showCard();dp700_saveFlash();};
+      bar.appendChild(b);
+    });
     // Reset button
-    const resetBtn=document.createElement('button');resetBtn.className='filter-btn';resetBtn.textContent='↺ Reset';resetBtn.style.borderColor='var(--warn)';resetBtn.style.color='var(--warn)';resetBtn.onclick=()=>{cardIdx=0;resetCounters();showCard();};bar.appendChild(resetBtn);
+    const resetBtn=document.createElement('button');resetBtn.className='filter-btn';resetBtn.textContent='↺ Reset';resetBtn.style.borderColor='var(--warn)';resetBtn.style.color='var(--warn)';resetBtn.onclick=()=>{cardIdx=0;resetCounters();localStorage.removeItem(LS_FLASH);showCard();};bar.appendChild(resetBtn);
     flashInited=true;
+    updateCounters();
   }
   showCard();
 }
@@ -1729,6 +1790,8 @@ function showCard(){
   document.getElementById('cardQ').innerHTML=renderRichText(card.q);
   document.getElementById('cardA').innerHTML=renderRichText(card.a);
   document.getElementById('cardCounter').textContent=`${cardIdx+1} / ${activeCards.length}`;
+  dp700_saveFlash();
+  updateStatusBar('flash');
 }
 function flipCard(){
   if(cardIdx>=activeCards.length)return; // no flip on completion screen
@@ -1738,7 +1801,7 @@ function flipCard(){
 function prevCard(){if(cardIdx>0){cardIdx--;showCard();}}
 function nextCard(){if(cardIdx<activeCards.length){cardIdx++;showCard();}}
 function rateCard(ok,e){
-  e.stopPropagation();
+  if(e&&e.stopPropagation)e.stopPropagation();
   if(cardIdx>=activeCards.length)return; // guard: don't rate on completion screen
   const cardKey=activeCards[cardIdx].q; // stable identifier
   if(!ratedIds.has(cardKey)){
@@ -2756,7 +2819,11 @@ let quizAnswers=[],quizFinished=false,quizReviewMode='all';
 function answeredCount(){return quizAnswers.filter(a=>a.selected!==null).length;}
 function calculateQuizScore(){return quizAnswers.filter(a=>a.correct===true).length;}
 function initQuiz(){
-  if(!qList.length){startQuiz();return;}
+  if(!qList.length){
+    // Try to restore saved quiz progress
+    if(dp700_loadQuiz()) { renderQ(); return; }
+    startQuiz();return;
+  }
   if(quizFinished)showResults();else renderQ();
 }
 function startQuiz(){
@@ -2771,7 +2838,7 @@ function startQuiz(){
 function restartQuiz(){
   const attempted=answeredCount();
   if(attempted&& !window.confirm(`Reset your ${attempted} answered question${attempted===1?'':'s'} and start a newly shuffled exam?`))return;
-  startQuiz();
+  localStorage.removeItem(LS_QUIZ);startQuiz();
 }
 function renderQuizNavigator(){
   const answered=answeredCount(),correct=calculateQuizScore(),flagged=quizAnswers.filter(a=>a.flagged).length;
@@ -2796,11 +2863,12 @@ function renderQ(){
   flagBtn.textContent=a.flagged?'★ Flagged':'☆ Flag for review';
   flagBtn.classList.toggle('flagged',a.flagged);
   renderQuizNavigator();
+  updateStatusBar('quiz');
 }
 function pick(i){
   const a=quizAnswers[qIdx],q=qList[qIdx];
   if(quizFinished||a.selected!==null)return;
-  a.selected=i;a.correct=i===q.ans;score=calculateQuizScore();renderQ();
+  a.selected=i;a.correct=i===q.ans;score=calculateQuizScore();renderQ();dp700_saveQuiz();
 }
 function goToQuestion(index){if(index<0||index>=qList.length)return;qIdx=index;renderQ();}
 function goToPreviousQuestion(){if(qIdx>0){qIdx--;renderQ();}}
@@ -2808,7 +2876,7 @@ function goToNextQuestion(){if(qIdx<qList.length-1){qIdx++;renderQ();}else finis
 function nextQ(){goToNextQuestion();}
 function toggleQuestionFlag(){
   if(quizFinished)return;
-  quizAnswers[qIdx].flagged=!quizAnswers[qIdx].flagged;renderQ();
+  quizAnswers[qIdx].flagged=!quizAnswers[qIdx].flagged;renderQ();dp700_saveQuiz();
 }
 function finishQuiz(){
   if(quizFinished){showResults();return;}
@@ -2823,7 +2891,7 @@ function reviewQuestions(mode){
     index=quizAnswers.findIndex(a=>a.selected===null||a.correct===false);
     if(index<0){window.alert('No missed or unanswered questions — excellent work.');showResults();return;}
   }
-  qIdx=index;renderQ();
+  qIdx=index;renderQ();updateStatusBar('quiz');
 }
 function showResults(){
   score=calculateQuizScore();
@@ -2838,7 +2906,177 @@ function showResults(){
   document.getElementById('quizResultBreakdown').innerHTML=`<span class="quiz-result-chip">✓ ${score} correct</span><span class="quiz-result-chip">✗ ${incorrect} incorrect</span><span class="quiz-result-chip">○ ${unanswered} unanswered</span><span class="quiz-result-chip">★ ${flagged} flagged</span>`;
   document.getElementById('scoreMsg').textContent=pct>=80?'🎉 Solid. Review the flagged or missed questions once more.':pct>=60?'👍 Good progress. Review your misses, then retry.':'📖 Review missed questions and use Concept Explorer for weak spots.';
   renderQuizNavigator();
+  showWeakAreas();
+  dp700_saveQuiz();
+  updateStatusBar('quiz');
 }
+
+// ══════════════ IMPROVEMENTS ══════════════
+
+// ── localStorage: Flashcard persistence ──
+const LS_FLASH='dp700_flash_v1';
+function dp700_saveFlash(){
+  try{
+    localStorage.setItem(LS_FLASH,JSON.stringify({
+      cardIdx,got,missed,
+      ratedIds:[...ratedIds],
+      currentFilter
+    }));
+  }catch(e){}
+}
+function dp700_loadFlash(){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS_FLASH)||'null');
+    if(!d)return false;
+    currentFilter=d.currentFilter||'All';
+    got=d.got||0;missed=d.missed||0;
+    ratedIds=new Set(d.ratedIds||[]);
+    activeCards=currentFilter==='All'?[...CURRENT_CARDS]:CURRENT_CARDS.filter(c=>c.tag===currentFilter);
+    cardIdx=Math.min(d.cardIdx||0,activeCards.length);
+    return true;
+  }catch(e){return false;}
+}
+
+// ── localStorage: Quiz persistence ──
+const LS_QUIZ='dp700_quiz_v1';
+function dp700_saveQuiz(){
+  try{
+    if(!qList.length)return;
+    localStorage.setItem(LS_QUIZ,JSON.stringify({
+      qListIds:qList.map(q=>q.q.slice(0,60)),
+      qList,quizAnswers,qIdx,quizFinished,score
+    }));
+  }catch(e){}
+}
+function dp700_loadQuiz(){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS_QUIZ)||'null');
+    if(!d||!d.qList||!d.qList.length)return false;
+    qList=d.qList;
+    quizAnswers=d.quizAnswers||qList.map(()=>({selected:null,correct:null,flagged:false}));
+    qIdx=d.qIdx||0;
+    quizFinished=d.quizFinished||false;
+    score=d.score||0;
+    document.getElementById('qTotal').textContent=qList.length;
+    document.getElementById('quizScore').style.display='none';
+    document.getElementById('quizArea').style.display='block';
+    return true;
+  }catch(e){return false;}
+}
+
+
+// ── Status bar ──
+const SECTION_NAMES={map:'Topic Map',survival:'Tonight Plan',arch:'Architecture Map',concept:'Concept Explorer',flash:'Flashcards',code:'Code Reference',scenario:'Scenarios',cheat:'Cheat Sheet',quiz:'Quiz'};
+function updateStatusBar(id){
+  const sec=document.getElementById('statusSection');
+  const det=document.getElementById('statusDetail');
+  const keys=document.getElementById('statusKeys');
+  if(sec)sec.textContent=SECTION_NAMES[id]||id;
+  if(id==='flash'&&det){
+    const total=activeCards.length;
+    const pos=Math.min(cardIdx+1,total);
+    det.textContent=`Card ${pos}/${total} · ✓ ${got} · ✗ ${missed}`;
+    if(keys)keys.textContent='← Space → G M';
+  } else if(id==='quiz'&&det){
+    const answered=quizAnswers&&quizAnswers.length?answeredCount():0;
+    const total=qList&&qList.length?qList.length:0;
+    det.textContent=total?`Q ${qIdx+1}/${total} · Answered: ${answered} · Correct: ${score}`:'';
+    if(keys)keys.textContent='← → 1–4';
+  } else {
+    if(det)det.textContent='';
+    if(keys)keys.textContent='';
+  }
+}
+
+// ── Domain collapse / expand all ──
+function expandAllDomains(){
+  document.querySelectorAll('.domain-card').forEach(c=>{
+    c.classList.add('expanded');c.setAttribute('aria-expanded','true');
+  });
+  updateDomainProgress();
+}
+function collapseAllDomains(){
+  document.querySelectorAll('.domain-card').forEach(c=>{
+    c.classList.remove('expanded');c.setAttribute('aria-expanded','false');
+  });
+  updateDomainProgress();
+}
+function updateDomainProgress(){
+  const el=document.getElementById('domainProgress');
+  if(!el)return;
+  const cards=document.querySelectorAll('.domain-card');
+  const done=document.querySelectorAll('.domain-card.done').length;
+  if(!cards.length)return;
+  el.textContent=done?`${done}/${cards.length} reviewed`:'';
+}
+
+// ── Weak area analysis ──
+function classifyQuestion(q){
+  const t=(q.q+' '+(q.exp||'')).toLowerCase();
+  if(/rls|cls|ddm|column.level|row.level|workspace role|item permission|git|deployment pipeline|lifecycle|access control|entra|audit|encrypt|sensitivity label|endorsement|purview|governance/i.test(t))return 'Security & Lifecycle';
+  if(/eventstream|eventhouse|kql|activator|real.time|streaming|window type|session window|hopping|tumbling|sliding|snapshot/i.test(t))return 'Real-Time Analytics';
+  if(/spark|lazy eval|lazy.evaluation|partition|cache\(\)|persist\(\)|delta lake|vacuum|v.order|optimize\b|notebook|delta table|delta parquet/i.test(t))return 'Spark & Delta';
+  if(/ingest|copy activity|dataflow gen2|scd|medallion|incremental|watermark|shortcut|mirroring|bronze|silver|gold|transform|full load|late.arriv/i.test(t))return 'Ingest & Transform';
+  if(/monitor|dmv|query insight|monitoring hub|capacity metrics|performance|diagnostic/i.test(t))return 'Monitor & Optimize';
+  return 'Architecture';
+}
+function showWeakAreas(){
+  const el=document.getElementById('weakAreaBreakdown');
+  if(!el||!quizAnswers||!quizAnswers.length)return;
+  const topics={};
+  qList.forEach((q,i)=>{
+    const a=quizAnswers[i];
+    if(a.selected===null)return;
+    const topic=classifyQuestion(q);
+    if(!topics[topic])topics[topic]={correct:0,total:0};
+    topics[topic].total++;
+    if(a.correct)topics[topic].correct++;
+  });
+  const entries=Object.entries(topics).sort((a,b)=>(a[1].correct/a[1].total)-(b[1].correct/b[1].total));
+  if(!entries.length){el.innerHTML='';return;}
+  const rows=entries.map(([topic,s])=>{
+    const pct=Math.round(s.correct/s.total*100);
+    const col=pct>=70?'var(--accent2)':pct>=50?'var(--yellow)':'var(--warn)';
+    const label=pct>=70?'✓ Strong':pct>=50?'△ Review':'✗ Focus';
+    return `<div class="weak-area-item"><div class="weak-area-name">${topic}</div><div class="weak-area-score" style="color:${col}">${label} · ${s.correct}/${s.total} (${pct}%)</div><div class="weak-area-bar"><div class="weak-area-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
+  }).join('');
+  el.innerHTML=`<div style="margin-top:20px;text-align:left"><div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;font-family:var(--mono)">PERFORMANCE BY TOPIC</div><div class="weak-area-grid">${rows}</div></div>`;
+}
+
+// ── Keyboard navigation ──
+document.addEventListener('keydown',function(e){
+  // Don't fire inside input/textarea
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)return;
+  const flashActive=document.getElementById('flash').classList.contains('active');
+  const quizActive=document.getElementById('quiz').classList.contains('active');
+  if(flashActive){
+    if(e.key==='ArrowLeft'){e.preventDefault();prevCard();}
+    else if(e.key==='ArrowRight'){e.preventDefault();nextCard();}
+    else if(e.key===' '){e.preventDefault();flipCard();}
+    else if(e.key==='g'||e.key==='G'){rateCard(true,e);}
+    else if(e.key==='m'||e.key==='M'){rateCard(false,e);}
+  }
+  if(quizActive&&document.getElementById('quizScore').style.display==='none'){
+    if(e.key==='ArrowLeft'){e.preventDefault();goToPreviousQuestion();}
+    else if(e.key==='ArrowRight'){e.preventDefault();goToNextQuestion();}
+    else if(['1','2','3','4'].includes(e.key)){
+      const idx=parseInt(e.key)-1;
+      if(qList.length&&idx<qList[qIdx].opts.length)pick(idx);
+    }
+  }
+});
+
+// ── Hash routing: restore section on load ──
+(function(){
+  const hash=(location.hash||'').replace('#','');
+  const valid=['map','survival','arch','concept','flash','code','scenario','cheat','quiz'];
+  if(hash&&valid.includes(hash)){
+    const btn=Array.from(document.querySelectorAll('.nav-btn')).find(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+hash+"'"));
+    if(btn){showSection(hash,btn);}
+  }else{
+    updateStatusBar('map');
+  }
+})();
 </script>
 </body>
 </html>

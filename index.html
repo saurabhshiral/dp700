@@ -5,6 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <title>DP-700 Exam Prep</title>
+<!-- ╔══════════════════════════════════════════════════════╗
+     ║  GOOGLE ANALYTICS 4                                  ║
+     ║  Replace G-XXXXXXXXXX with your Measurement ID.      ║
+     ║  Get it at: analytics.google.com → Admin →           ║
+     ║  Data Streams → Web → Measurement ID                 ║
+     ╚══════════════════════════════════════════════════════╝ -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX', {
+    cookie_flags: 'SameSite=None;Secure',
+    anonymize_ip: true
+  });
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 :root{--bg:#f6f8fa;--surface:#ffffff;--surface2:#f0f3f6;--border:#d0d7de;--accent:#0969da;--accent2:#1a7f37;--warn:#cf222e;--yellow:#9a6700;--purple:#8250df;--text:#24292f;--text-dim:#57606a;--text-bright:#1f2328;--mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;}
@@ -3076,6 +3092,39 @@ document.addEventListener('keydown',function(e){
   }else{
     updateStatusBar('map');
   }
+})();
+</script>
+
+<!-- ── DevTools deterrents ── -->
+<script>
+(function(){
+  // Disable right-click context menu
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+
+  // Block common keyboard shortcuts used to inspect source
+  document.addEventListener('keydown', function(e){
+    var blocked =
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) ||
+      (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'));
+    if(blocked){ e.preventDefault(); e.stopPropagation(); return false; }
+  }, true);
+
+  // Warn + redirect if DevTools is likely open (window size heuristic)
+  var _dt = false;
+  setInterval(function(){
+    var threshold = 160;
+    var open = (window.outerHeight - window.innerHeight > threshold) ||
+               (window.outerWidth  - window.innerWidth  > threshold);
+    if(open && !_dt){
+      _dt = true;
+      console.clear();
+      console.log('%c🔒 This page is private study material.', 'font-size:20px;color:#cf222e;font-weight:bold;');
+    } else if(!open){ _dt = false; }
+  }, 800);
+
+  // Continuous console clear to obscure logged data
+  setInterval(function(){ console.clear(); }, 2000);
 })();
 </script>
 </body>
